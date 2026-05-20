@@ -82,4 +82,5 @@ Claude Code operates autonomously across files, git, and terminal. Guardrails in
 
 ## License
 
-MIT — [CodeItWisely](https://codeitwisely.ai)
+[MIT](LICENSE) — free to use, modify, and distribute.
+Built by [CodeIt Wisely](https://codeitwisely.ai)
