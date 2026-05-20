@@ -67,7 +67,8 @@ ddev exec vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/code
 
 This kit gives you the safety layer. For a full AI-assisted Drupal development workflow with 30+ skills, 9 agents, and 8 rule files covering entity API, caching, security, migrations, testing and more:
 
-→ **[drupal-ai](https://github.com/edutrul/drupal-ai)** by [Eduardo Telaya](https://eduardotelaya.com/drupal-ai) — also available as a Drupal module: [ai_code_guardrails](https://www.drupal.org/project/ai_code_guardrails)
+→ **[drupal-ai](https://github.com/edutrul/drupal-ai)** by Eduardo Telaya — a developer toolkit (not a Drupal module) built as knowledge files consumed by AI coding agents.
+Full architecture: [eduardotelaya.com/drupal-ai](https://eduardotelaya.com/drupal-ai) · Drupal project page: [ai_code_guardrails](https://www.drupal.org/project/ai_code_guardrails)
 
 ---
 
