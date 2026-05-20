@@ -1,0 +1,65 @@
+# Gitleaks configuration — Drupal projects
+# Docs: https://github.com/gitleaks/gitleaks
+#
+# Usage:
+#   gitleaks protect --staged --config=.gitleaks.toml  (pre-commit)
+#   gitleaks detect --config=.gitleaks.toml            (full scan)
+
+title = "Gitleaks — Drupal"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "DDEV local environment — covered by .gitignore"
+paths = [
+  '''\.ddev/.*''',
+]
+
+[[allowlists]]
+description = "Composer vendor — never committed"
+paths = [
+  '''vendor/.*''',
+]
+
+[[allowlists]]
+description = "Drupal core — never committed"
+paths = [
+  '''web/core/.*''',
+]
+
+[[allowlists]]
+description = "Key module config files — exclude via .gitignore (config/sync/key.key.*.yml)"
+paths = [
+  '''config/sync/key\.key\..*\.yml''',
+]
+
+[[allowlists]]
+description = "Drupal hash salt in settings files — local dev only, not in git"
+regexes = [
+  '''hash_salt.*=.*['\"][\w]{75,}['\"]''',
+]
+
+[[allowlists]]
+description = "Contrib module minified JS — false positives from variable names"
+paths = [
+  '''web/modules/contrib/.*\.js$''',
+  '''web/modules/contrib/.*\.min\.js$''',
+  '''web/themes/contrib/.*\.js$''',
+  '''web/libraries/.*\.js$''',
+]
+
+[[allowlists]]
+description = "Test fixtures and example files"
+paths = [
+  '''.*\.test\.php$''',
+  '''.*[Ff]ixtures?/.*''',
+  '''.*[Ee]xample.*''',
+]
+
+[[allowlists]]
+description = "Sanitized SQL exports (already anonymized)"
+paths = [
+  '''.*\.sanitized\.sql$''',
+  '''.*\.sanitized\.sql\.gz$''',
+]

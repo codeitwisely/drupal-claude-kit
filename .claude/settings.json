@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ddev *)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git checkout -b *)",
+      "Bash(git add *)",
+      "Bash(git commit*)",
+      "Bash(git fetch*)",
+      "Bash(git pull*)",
+      "Bash(git push origin feature/*)",
+      "Bash(git push origin fix/*)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(grep *)"
+    ],
+    "deny": [
+      "Bash(git push origin dev)",
+      "Bash(git push origin main)",
+      "Bash(git push origin master)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(ddev delete*)",
+      "Bash(composer require *)",
+      "Bash(ddev drush en *)",
+      "Bash(npm install *)",
+      "Bash(pip install *)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | bash)",
+      "Bash(rm -rf *)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.config/gcloud/**)",
+      "Bash(cat ~/.ssh/*)",
+      "Bash(cat ~/.aws/*)",
+      "Bash(cat ~/.gnupg/*)",
+      "Bash(grep * ~/.ssh/*)",
+      "Bash(grep * ~/.aws/*)"
+    ]
+  }
+}

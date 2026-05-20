@@ -1,0 +1,38 @@
+# .claudeignore — Drupal projects
+# Tells Claude Code which paths to skip when reading the codebase.
+# Keeps context focused on custom code — reduces noise and token usage.
+#
+# Syntax mirrors .gitignore.
+
+# ── Drupal core & contrib (never modify) ─────────────────────────────────────
+web/core/
+web/modules/contrib/
+web/themes/contrib/
+web/profiles/contrib/
+web/libraries/
+
+# ── Composer dependencies ─────────────────────────────────────────────────────
+vendor/
+
+# ── Generated / uploaded files ────────────────────────────────────────────────
+web/sites/default/files/
+web/sites/*/files/
+
+# ── DDEV local environment ────────────────────────────────────────────────────
+.ddev/
+
+# ── Frontend build artifacts ──────────────────────────────────────────────────
+node_modules/
+web/themes/custom/*/dist/
+web/themes/custom/*/build/
+
+# ── Cache & logs ──────────────────────────────────────────────────────────────
+web/sites/default/files/php/
+web/sites/default/files/css/
+web/sites/default/files/js/
+
+# ── Sensitive local config (never read by agent) ──────────────────────────────
+web/sites/default/settings.local.php
+.env
+.env.local
+config/sync/key.key.*.yml

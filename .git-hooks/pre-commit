@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# Pre-commit hook — Drupal projects
+# Runs: Gitleaks (secrets scan) + PHPCS (Drupal standards) + SQL dump blocker
+#
+# Install:
+#   cp .git-hooks/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# Or use install.sh for automatic setup.
+#
+# Never use --no-verify to bypass this hook.
+
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+# ─── 1. Gitleaks — secrets scan ──────────────────────────────────────────────
+echo "🔍 Gitleaks: scanning staged files for secrets..."
+
+if ! command -v gitleaks &>/dev/null; then
+  echo "⚠️  gitleaks not found — install with: brew install gitleaks"
+  echo "   Skipping secrets scan (NOT recommended for production commits)"
+else
+  gitleaks protect \
+    --staged \
+    --config="$ROOT/.gitleaks.toml" \
+    --redact \
+    --verbose \
+    2>&1
+
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ BLOCKED: Gitleaks detected secrets in staged files."
+    echo "   Review the findings above, remove/rotate credentials, then recommit."
+    echo "   If false positive: add an allowlist entry to .gitleaks.toml"
+    exit 1
+  fi
+  echo "✅ Gitleaks: no secrets detected"
+fi
+
+# ─── 2. PHPCS — Drupal coding standards ──────────────────────────────────────
+# Commit is BLOCKED if PHPCS reports any error (exit code 1).
+# Warnings are shown but do not block.
+STAGED_PHP=$(echo "$STAGED" | grep -E '\.php$|\.module$|\.theme$|\.install$' || true)
+
+if [ -n "$STAGED_PHP" ]; then
+  echo "🔍 PHPCS: checking Drupal coding standards..."
+
+  if ddev describe &>/dev/null 2>&1; then
+    PHPCS_OUTPUT=$(echo "$STAGED_PHP" | xargs ddev exec phpcs \
+      --standard=Drupal,DrupalPractice \
+      --extensions=php,module,theme,install \
+      --report=full \
+      2>&1)
+    PHPCS_EXIT=${PIPESTATUS[0]:-$?}
+
+    # phpcs exits 1 when errors are found, 0 when clean (warnings don't change exit code)
+    if [ "${PHPCS_EXIT}" -ne 0 ] || echo "$PHPCS_OUTPUT" | grep -qE "^FOUND [0-9]+ ERROR"; then
+      echo "$PHPCS_OUTPUT"
+      echo ""
+      echo "❌ BLOCKED: PHPCS found coding standard errors."
+      echo "   Auto-fix:  ddev exec phpcbf --standard=Drupal,DrupalPractice <file>"
+      echo "   Full check: ddev exec phpcs --standard=Drupal,DrupalPractice <file>"
+      exit 1
+    fi
+
+    # Show warnings without blocking
+    if echo "$PHPCS_OUTPUT" | grep -qE "WARNING"; then
+      echo "$PHPCS_OUTPUT"
+      echo "⚠️  PHPCS: warnings found (not blocking) — consider fixing before PR"
+    else
+      echo "✅ PHPCS: 0 errors, 0 warnings"
+    fi
+  else
+    echo "⚠️  DDEV not running — skipping PHPCS (run: ddev start)"
+  fi
+fi
+
+# ─── 3. Block .env files ─────────────────────────────────────────────────────
+STAGED_ENV=$(echo "$STAGED" | grep -E '(^|/)\.env(\.|$)' || true)
+
+if [ -n "$STAGED_ENV" ]; then
+  echo ""
+  echo "❌ BLOCKED: .env file detected in staged files:"
+  echo "$STAGED_ENV"
+  echo ""
+  echo "   .env files must never be committed (contain credentials)."
+  echo "   Add to .gitignore: .env .env.local .env.*.local"
+  exit 1
+fi
+
+# ─── 4. Block SQL dumps ───────────────────────────────────────────────────────
+STAGED_SQL=$(echo "$STAGED" | grep -E '\.sql$|\.sql\.gz$|\.dump$' || true)
+
+if [ -n "$STAGED_SQL" ]; then
+  echo ""
+  echo "❌ BLOCKED: SQL dump detected in staged files:"
+  echo "$STAGED_SQL"
+  echo ""
+  echo "   SQL dumps must never be committed (may contain PII)."
+  echo "   Add to .gitignore: *.sql *.sql.gz *.dump"
+  exit 1
+fi
+
+echo ""
+echo "✅ Pre-commit checks passed — proceeding with commit."
+exit 0
