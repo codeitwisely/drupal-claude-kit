@@ -35,16 +35,44 @@ else
   echo "⚠️  DDEV not found. Install: https://ddev.com/get-started/"
 fi
 
-# ─── 3. Copy .gitleaks.toml ──────────────────────────────────────────────────
-if [ ! -f "$ROOT/.gitleaks.toml" ]; then
-  if [ -f "$(dirname "$0")/.gitleaks.toml" ]; then
-    cp "$(dirname "$0")/.gitleaks.toml" "$ROOT/.gitleaks.toml"
-  else
-    curl -fsSL "$REPO_URL/.gitleaks.toml" -o "$ROOT/.gitleaks.toml"
-  fi
-  echo "✅ .gitleaks.toml installed"
+# ─── 3. Install .gitleaks.core.toml (core rules — auto-updated by update.sh) ─
+if [ -f "$(dirname "$0")/.gitleaks.core.toml" ]; then
+  cp "$(dirname "$0")/.gitleaks.core.toml" "$ROOT/.gitleaks.core.toml"
 else
-  echo "ℹ️  .gitleaks.toml already exists — skipping"
+  curl -fsSL "$REPO_URL/.gitleaks.core.toml" -o "$ROOT/.gitleaks.core.toml"
+fi
+echo "✅ .gitleaks.core.toml installed (core rules — do not edit)"
+
+# Add to .gitignore — this file is auto-downloaded, not project-owned
+GITIGNORE="$ROOT/.gitignore"
+if [ -f "$GITIGNORE" ] && ! grep -q '\.gitleaks\.core\.toml' "$GITIGNORE"; then
+  echo "" >> "$GITIGNORE"
+  echo "# drupal-claude-kit — auto-downloaded, do not commit" >> "$GITIGNORE"
+  echo ".gitleaks.core.toml" >> "$GITIGNORE"
+  echo "✅ .gitignore: .gitleaks.core.toml excluded"
+fi
+
+# ─── 4. Create .gitleaks.toml (user's file — extends core, never overwritten) ─
+if [ ! -f "$ROOT/.gitleaks.toml" ]; then
+  cat > "$ROOT/.gitleaks.toml" <<'EOF'
+# .gitleaks.toml — YOUR project allowlists
+# This file is yours. update.sh never touches it.
+# Core Drupal rules live in .gitleaks.core.toml (auto-updated via update.sh).
+
+title = "Gitleaks — project config"
+
+[extend]
+path = ".gitleaks.core.toml"
+
+# Add your project-specific [[allowlists]] below
+# Example:
+# [[allowlists]]
+# description = "Legacy module — tracked issue #123"
+# paths = [ '''web/modules/custom/legacy/.*''' ]
+EOF
+  echo "✅ .gitleaks.toml created (add your project allowlists here)"
+else
+  echo "ℹ️  .gitleaks.toml already exists — skipping (your allowlists are safe)"
 fi
 
 # ─── 4. Install pre-commit hook ──────────────────────────────────────────────
@@ -70,7 +98,7 @@ fi
 chmod +x "$HOOK_FILE"
 echo "✅ pre-commit hook installed"
 
-# ─── 5. Copy .claude/ files (optional) ───────────────────────────────────────
+# ─── 6. Copy .claude/ files (optional) ───────────────────────────────────────
 if [ ! -d "$ROOT/.claude" ]; then
   read -p "Install .claude/CLAUDE.md and .claude/settings.json template? [y/N] " yn
   if [[ "$yn" =~ ^[Yy]$ ]]; then

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Pre-commit hook — Drupal projects
+# drupal-claude-kit v1.1.0
+#
 # Runs: Gitleaks (secrets scan) + PHPCS (Drupal standards) + SQL dump blocker
 #
-# Install:
-#   cp .git-hooks/pre-commit .git/hooks/pre-commit
-#   chmod +x .git/hooks/pre-commit
-#
-# Or use install.sh for automatic setup.
+# Install:   bash install.sh
+# Update:    bash update.sh  (or: curl -fsSL .../update.sh | bash)
 #
 # Never use --no-verify to bypass this hook.
+HOOK_VERSION="1.1.0"
 
 set -euo pipefail
 
@@ -108,5 +108,5 @@ if [ -n "$STAGED_SQL" ]; then
 fi
 
 echo ""
-echo "✅ Pre-commit checks passed — proceeding with commit."
+echo "✅ Pre-commit checks passed — proceeding with commit. [drupal-claude-kit $HOOK_VERSION]"
 exit 0
