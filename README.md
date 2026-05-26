@@ -13,13 +13,26 @@ bash <(curl -fsSL https://raw.githubusercontent.com/codeitwisely/drupal-claude-k
 
 ```
 your-drupal-project/
-├── .gitleaks.toml          ← secret scanning, Drupal-specific allowlists
+├── .gitleaks.core.toml     ← core Drupal rules (auto-updated, do not edit)
+├── .gitleaks.toml          ← YOUR allowlists — extends core, never overwritten
 ├── .claudeignore           ← keeps Claude focused on custom code only
 ├── .git/hooks/pre-commit   ← runs on every commit (see below)
 └── .claude/
     ├── CLAUDE.md           ← Drupal/DDEV conventions Claude reads every session
     └── settings.json       ← deny rules: no push to main, no rm -rf, no ~/.ssh reads
 ```
+
+### Two-layer design
+
+| File | Owner | Updated by |
+|---|---|---|
+| `.gitleaks.core.toml` | drupal-claude-kit | `update.sh` — auto |
+| `.git/hooks/pre-commit` | drupal-claude-kit | `update.sh` — auto |
+| `.gitleaks.toml` | **you** | never overwritten |
+| `.claude/settings.json` | **you** | never overwritten |
+| `.claude/CLAUDE.md` | **you** | never overwritten |
+
+Your customizations survive every update.
 
 **Pre-commit hook blocks:**
 - Secrets in staged files (Gitleaks)
@@ -43,6 +56,20 @@ PHPCS via DDEV:
 ddev composer require --dev drupal/coder
 ddev exec vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer
 ```
+
+---
+
+## Staying up to date
+
+```bash
+# Update core files (hook + gitleaks rules) — your customizations are safe
+bash update.sh
+
+# Or without cloning:
+curl -fsSL https://raw.githubusercontent.com/codeitwisely/drupal-claude-kit/main/update.sh | bash
+```
+
+`settings.json` and `CLAUDE.md` are never touched by `update.sh`. Check [CHANGELOG.md](CHANGELOG.md) when a new version is released to see if manual updates are recommended.
 
 ---
 
